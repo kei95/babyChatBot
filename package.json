@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.ts",
+  "scripts": {
+    "tsc": "tsc",
+    "start:prod": "node dist/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kei95/babyChatBot.git"
