@@ -1,7 +1,7 @@
-import { Configuration, OpenAIApi } from "npm:openai";
+import { Configuration, OpenAIApi } from "openai";
 
 const configuration = new Configuration({
-  apiKey: Deno.env.get("OPEN_API_KEY"),
+  apiKey: process.env.OPEN_API_KEY,
 });
 
 export const openAI = new OpenAIApi(configuration);

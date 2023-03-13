@@ -1,13 +1,17 @@
-import { linebot as linebotInit } from "https://deno.land/x/linebot@v1.1.0/mod.ts";
-import { json } from "https://deno.land/x/opine@2.3.3/mod.ts";
+import {
+  Client,
+  type MiddlewareConfig,
+  type ClientConfig,
+} from "@line/bot-sdk";
 
-const config = {
-  channelId: Deno.env.get("CLIENT_ID"),
-  channelSecret: Deno.env.get("SECRET"),
-  channelAccessToken: Deno.env.get("ACCESS_TOKEN"),
-  verify: true,
+const config: ClientConfig = {
+  channelAccessToken: process.env.ACCESS_TOKEN || "",
+  channelSecret: process.env.SECRET,
 };
 
-export const lineBot = linebotInit(config);
+export const middlewareConfig: MiddlewareConfig = {
+  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
+  channelSecret: process.env.CHANNEL_SECRET || "",
+};
 
-export const linebotParser = lineBot.parser(json);
+export const client = new Client(config);

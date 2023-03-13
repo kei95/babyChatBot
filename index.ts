@@ -1,21 +1,22 @@
-import { opine } from "https://deno.land/x/opine@2.3.3/mod.ts";
-import { bold, cyan } from "https://deno.land/std@0.179.0/fmt/colors.ts";
+import express, { Application, Request, Response } from "express";
 
-import { openAI } from "./openAI.ts";
-import { lineBot, linebotParser } from "./lineBot.ts";
+import { openAI } from "./openAI";
+import { client, middlewareConfig } from "./lineBot";
+import {
+  MessageAPIResponseBase,
+  middleware,
+  TextMessage,
+  WebhookEvent,
+} from "@line/bot-sdk";
 
-type MessageEvent = {
-  message: {
-    text: string;
+const app: Application = express();
+
+async function getChatGPTResponse(inputText: string) {
+  const response: TextMessage = {
+    type: "text",
+    text: "あれれー、わかんない",
   };
-  reply: (text: string) => Promise<Record<string, unknown>>;
-};
 
-const app = opine();
-
-app.post(`/`, linebotParser);
-
-lineBot.on("message", async (event: MessageEvent) => {
   try {
     const completion = await openAI.createChatCompletion({
       model: "gpt-3.5-turbo",
@@ -23,26 +24,77 @@ lineBot.on("message", async (event: MessageEvent) => {
       messages: [
         {
           role: "system",
-          content: "武士風に話してください",
+          content: "態度の大きいボス風に話してください",
         },
-        { role: "user", content: event.message.text },
+        { role: "user", content: inputText },
       ],
     });
-
     const chatGPTResponse = completion.data.choices[0].message?.content;
-    const responseResult = await event.reply(
-      chatGPTResponse || "あれれー、わかんない"
-    );
 
-    console.log("Success", responseResult);
+    // update response text with chat GPT's response
+    response.text = chatGPTResponse || "あれれー、わかんない";
   } catch (error) {
-    console.log("Error", error);
-    await event.reply("あれれー、わかんない");
+    console.log("error on chat GPT!", error);
   }
+
+  return response;
+}
+
+const lintTextEventHandler = async (
+  event: WebhookEvent
+): Promise<MessageAPIResponseBase | undefined> => {
+  // Process all variables here.
+  if (event.type !== "message" || event.message.type !== "text") {
+    return;
+  }
+
+  const { replyToken } = event;
+  const { text } = event.message;
+
+  const chatGPTResponse = await getChatGPTResponse(text);
+
+  await client.replyMessage(replyToken, chatGPTResponse);
+};
+
+app.get("/", async (_: Request, res: Response): Promise<Response> => {
+  return res.status(200).json({
+    status: "success",
+    message: "Connected successfully!",
+  });
 });
 
-const PORT = parseInt(Deno.env.get("PORT") || "") || 80;
+app.post(
+  "/webhook",
+  middleware(middlewareConfig),
+  async (req: Request, res: Response): Promise<Response> => {
+    const events: WebhookEvent[] = req.body.events;
 
-app.listen(PORT, () =>
-  console.log(bold(cyan(`LineBot is running. Port : ${PORT}`)))
+    // Process all of the received events asynchronously.
+    const results = await Promise.all(
+      events.map(async (event: WebhookEvent) => {
+        try {
+          await lintTextEventHandler(event);
+        } catch (err: unknown) {
+          if (err instanceof Error) {
+            console.error(err);
+          }
+
+          // Return an error message.
+          return res.status(500).json({
+            status: "error",
+          });
+        }
+      })
+    );
+
+    // Return a successfull message.
+    return res.status(200).json({
+      status: "success",
+      results,
+    });
+  }
 );
+
+const PORT = parseInt(process.env.PORT || "") || 80;
+
+app.listen(PORT, () => console.log(`LineBot is running. Port : ${PORT}`));
