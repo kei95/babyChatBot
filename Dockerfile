@@ -9,4 +9,4 @@ RUN npm install --production
 
 COPY . .
 
-CMD [ "node", "dist/index.js" ]
+CMD [ "node", "./index.js" ]
