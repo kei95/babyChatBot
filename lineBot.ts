@@ -11,7 +11,7 @@ const config: ClientConfig = {
 
 export const middlewareConfig: MiddlewareConfig = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.CHANNEL_SECRET || "",
+  channelSecret: process.env.SECRET || "",
 };
 
 export const client = new Client(config);

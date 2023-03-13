@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+dotenv.config();
+
 import express, { Application, Request, Response } from "express";
 
 import { openAI } from "./openAI";
@@ -22,9 +25,10 @@ async function getChatGPTResponse(inputText: string) {
       model: "gpt-3.5-turbo",
       temperature: 0.6,
       messages: [
+        // DO NOT touch this message - it changes baby's tone
         {
           role: "system",
-          content: "態度の大きいボス風に話してください",
+          content: "態度の大きい口調で話してください",
         },
         { role: "user", content: inputText },
       ],
@@ -64,7 +68,7 @@ app.get("/", async (_: Request, res: Response): Promise<Response> => {
 });
 
 app.post(
-  "/webhook",
+  "/",
   middleware(middlewareConfig),
   async (req: Request, res: Response): Promise<Response> => {
     const events: WebhookEvent[] = req.body.events;
