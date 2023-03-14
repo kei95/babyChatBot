@@ -55,6 +55,12 @@ const lintTextEventHandler = async (
   const { replyToken } = event;
   const { text } = event.message;
 
+  // Check if given message is for this bot
+  // when the message starts with "a  [text]" the bot should be activated
+  const ACTIVATION_SUBSTRING = "a ";
+  const trimmedText = text.trim().substring(0, 2);
+  if (trimmedText !== ACTIVATION_SUBSTRING) return;
+
   const chatGPTResponse = await getChatGPTResponse(text);
 
   await client.replyMessage(replyToken, chatGPTResponse);
@@ -91,7 +97,7 @@ app.post(
       })
     );
 
-    // Return a successfull message.
+    // Return a successful message.
     return res.status(200).json({
       status: "success",
       results,
