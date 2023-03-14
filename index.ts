@@ -61,7 +61,10 @@ const lintTextEventHandler = async (
   const trimmedText = text.trim().substring(0, 2);
   if (trimmedText !== ACTIVATION_SUBSTRING) return;
 
-  const chatGPTResponse = await getChatGPTResponse(text);
+  const textWithoutActivationSubString = text.trim().slice(2);
+  const chatGPTResponse = await getChatGPTResponse(
+    textWithoutActivationSubString
+  );
 
   await client.replyMessage(replyToken, chatGPTResponse);
 };
