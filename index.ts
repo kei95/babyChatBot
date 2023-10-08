@@ -28,7 +28,7 @@ async function getChatGPTResponse(inputText: string) {
         // DO NOT touch this message - it changes baby's tone
         {
           role: "system",
-          content: "態度の大きい口調で話してください",
+          content: "タメ語で話して",
         },
         { role: "user", content: inputText },
       ],
